@@ -1,0 +1,6 @@
+@media (min-width: 768px){
+    .chart-messager .col-md-7 {
+        flex: 0 0 58.333333%;
+        max-width: 62.333333%;
+    }
+}
