@@ -10,18 +10,22 @@ export class UserService {
 
   UserID:any
   UserFullName : any
+  FirstName: any
+  LastName: any
   UserN : any
 
   constructor(private fb: FormBuilder, private http: HttpClient) { }
   readonly BaseURI = 'http://localhost:54277/api';
 
   formModel = this.fb.group({
-    UserName: ['', Validators.required],
+    UserName: [''],
     Email: ['', Validators.email],
-    FullName: [''],
+    FirstName: ['', Validators.required],
+    LastName: ['', Validators.required],
+    //FullName: [''],
     Passwords: this.fb.group({
-      Password: ['', [Validators.required, Validators.minLength(4)]],
-      ConfirmPassword: ['', Validators.required]
+      Password: ['', [Validators.minLength(4)]],
+      ConfirmPassword: ['']
     }, { validator: this.comparePasswords })
 
   });
@@ -39,8 +43,10 @@ export class UserService {
   register() {
     var body = {
       UserName: this.formModel.value.UserName,
+      FirstName: this.formModel.value.FirstName,
+      LastName: this.formModel.value.LastName,
       Email: this.formModel.value.Email,
-      FullName: this.formModel.value.FullName,
+      //FullName: this.formModel.value.FullName,
       Password: this.formModel.value.Passwords.Password
     };
     return this.http.post(this.BaseURI + '/ApplicationUser/Register', body);
@@ -62,9 +68,11 @@ export class UserService {
     }
     var userRole = payLoad.role;
     var userid = payLoad.UserID;
-    this.UserID=userid
-    this.UserFullName=payLoad.FullName
-    this.UserN=payLoad.UserName
+    this.UserID=userid;
+    this.UserFullName=payLoad.FirstName +' '+ payLoad.LastName;
+    this.FirstName = payLoad.FirstName;
+    this.LastName = payLoad.LastName;
+    this.UserN=payLoad.UserName;
     allowedRoles.forEach((e :any ) => {
       if (userRole == e) {
         isMatch = true;

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../shared/user.service';
 import { HubConnection, HubConnectionBuilder } from '@aspnet/signalr';
 import { parse } from 'path';
+import { last } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin-panel',
@@ -34,14 +35,18 @@ export class AdminPanelComponent implements OnInit {
     const self = this
     this.hubConnection.start()
     .then(()=>{
-      self.hubConnection.invoke("OnConnect",this.UserID,this.service.UserFullName,this.service.UserN)
-      .then(()=>console.log('User Sent Successfully'))
-      .catch(err => console.error(err));
+      self.hubConnection.invoke("OnConnect",this.UserID,this.service.FirstName, this.service.LastName,this.service.UserN)
+      .then(()=>{
+        console.log('User Sent Successfully')
+      })
+      .catch(err => {
+        console.error(err)
+      });
 
       this.hubConnection.on("OnConnect",Usrs=>
       {
         this.UsersConnectionId = Object.keys(Usrs).map((index) => Usrs[index].connectionId)
-        this.UsersFullName = Object.keys(Usrs).map((index) => Usrs[index].fullName)
+        this.UsersFullName = Object.keys(Usrs).map((index) => Usrs[index].firstName +' '+ Usrs[index].lastName)
 
         this.connectedUsers = Usrs
       // this.usersss = Object.keys(Usrs).map((index) => { return {fullName:Usrs[index].fullName,connectionId:Usrs[index].connectionId}})
@@ -51,22 +56,25 @@ export class AdminPanelComponent implements OnInit {
       })
       this.hubConnection.on("OnDisconnect",Usrs=>{
         this.UsersConnectionId = Object.keys(Usrs).map((index) => Usrs[index].connectionId)
-        this.UsersFullName = Object.keys(Usrs).map((index) => Usrs[index].fullName)  
+        this.UsersFullName = Object.keys(Usrs).map((index) => Usrs[index].firstName +' '+ Usrs[index].lastName)  
         this.Users=Usrs
       })
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err)
+    });
     
     this.hubConnection.on("UserConnected", (connectionId) =>this.UserConnectionID=connectionId);
 
     this.hubConnection.on('receiveMessageAll', (connectionId ,message) => {
-      this.messages.push({user : this.connectedUsers.find(it => it.connectionId === connectionId).fullName, message})
+      var connectionUser = this.connectedUsers.find(it => it.connectionId === connectionId);
+      this.messages.push({user : connectionUser.firstName +' '+ connectionUser.lastName, message})
     })
     
     this.hubConnection.on('ReceiveDM', (connectionId,message) => {
-      
-      this.messages.push({user : this.connectedUsers.find(it => it.connectionId === connectionId).fullName, message})
-      // this.messages.push(message)
+      var connectionUser = this.connectedUsers.find(it => it.connectionId === connectionId);
+      this.messages.push({user : connectionUser.firstName +' '+ connectionUser.lastName, message})
+       //this.messages.push(message)
       // this.sender=UserFullName
     })
 
